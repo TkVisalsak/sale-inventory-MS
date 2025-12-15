@@ -1,0 +1,19 @@
+php artisan make:migration categories_tbl
+php artisan make:migration customers_tbl
+php artisan make:migration supplier_tbl
+php artisan make:migration purchase_requests_tbl
+php artisan make:migration return_goods_tbl
+php artisan make:migration stock_movements_tbl
+php artisan make:migration users_tbl
+php artisan make:migration users_log_tbl
+php artisan make:migration customers_balance_tbl
+php artisan make:migration supplier_payable_tbl
+
+php artisan make:controller categoriesController
+php artisan make:controller inventoryController
+php artisan make:controller supplierController
+php artisan make:controller userController
+php artisan make:controller customersController
+
+php artisan make:controller posController
+php artisan make:controller stocksMovement

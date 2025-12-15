@@ -1,0 +1,41 @@
+import express from 'express';
+import { searchProductsByName, searchSupplier, searchProductBySupplier, addMovement, getMovement, getLatestBatchByProductId, getInventory,addCustomer, getAllCustomers, getPurchaseRequests, addPurchaseRequest, addproduct, addsupplier, addcategory, addbatch, getproducts, getsupplier, getcategories, getbatches, getsuppliers, returnGood, getAllReturns, deductStockFIFO, getProductsByCategory, getbatchesbyid,getMovementsByProductId, editProduct, getProductStockSummary, getPOSProductList, getProductsByCategoryid, editCategory,deductFromBatchesByNameFIFO  } from '../controller/inventory-controll.js';
+import { protectRoute } from '../lib/auth.middleware.js';
+const router = express.Router();
+//Dashboard
+
+router.get('/searchProductsByName', searchProductsByName);
+router.get('/searchSupplier', searchSupplier);
+router.get('/searchProductBySupplier', searchProductBySupplier);
+router.post('/addMovement', addMovement);
+router.get('/getMovement', getMovement);
+router.get('/getLatestBatchByProductId', getLatestBatchByProductId);
+router.get('/getInventory', getInventory);
+router.post('/addCustomer', addCustomer);
+router.get('/getAllCustomers', getAllCustomers);
+router.get('/getPurchaseRequests', getPurchaseRequests);
+router.post('/addPurchaseRequest', addPurchaseRequest);
+router.post('/addproduct', addproduct);
+router.post('/addsupplier', addsupplier);
+router.post('/getsuppliers', getsuppliers);
+router.get('/getsuppliers', getsuppliers);
+router.post('/addcategory', addcategory);
+router.post('/addbatch', protectRoute, addbatch);
+router.post('/getproducts', getproducts);
+router.get('/getsupplier', getsupplier);
+router.post('/getcategories', getcategories);
+router.get('/getcategories', getcategories);
+router.post('/getbatches', getbatches);
+router.post('/returnGood', returnGood);
+router.get('/getAllReturns', getAllReturns);
+router.post('/deductStockFIFO', deductStockFIFO);
+router.post('/getProductsByCategory', getProductsByCategory);
+router.get('/getbatchesbyid', getbatchesbyid);
+router.get('/getMovementsByProductId', getMovementsByProductId);
+router.put('/editProduct', editProduct);
+router.get('/getProductStockSummary', getProductStockSummary);
+router.get('/getPOSProductList', getPOSProductList);
+router.get('/getProductsByCategoryid',getProductsByCategoryid);
+router.put('/editCategory',editCategory);
+router.post('/deductFromBatchesByNameFIFO',deductFromBatchesByNameFIFO)
+export default router;
