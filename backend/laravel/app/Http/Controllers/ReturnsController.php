@@ -2,60 +2,59 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Customer;
+use App\Models\ReturnGood;
 use Illuminate\Http\Request;
 
-class customersController extends Controller
+class ReturnsController extends Controller
 {
     /**
-     * List all customers
+     * List all returns
      */
     public function index(Request $request)
     {
-        $customers = Customer::orderBy('created_at', 'desc')->get();
+        $returns = ReturnGood::with(['customer', 'product'])
+            ->orderBy('return_date', 'desc')
+            ->orderBy('id', 'desc')
+            ->get();
 
         if ($request->expectsJson() || $request->is('api/*')) {
-            return response()->json($customers);
+            return response()->json($returns);
         }
 
-        return view('customers.index', compact('customers'));
+        return view('returns.index', compact('returns'));
     }
 
     /**
-     * Store a new customer
+     * Store a new return record
      */
     public function store(Request $request)
     {
         try {
             $validated = $request->validate([
-                'name'          => 'required|string|max:255',
-                'email'         => 'nullable|email|max:150',
-                'phone'         => 'nullable|string|max:50',
-                'address'       => 'nullable|string',
-                'customer_type' => 'nullable|string|max:50',
-                'credit_limit'  => 'nullable|numeric|min:0',
-                'is_active'     => 'nullable|boolean',
+                'return_date'   => 'nullable|date',
+                'customer_id'   => 'nullable|exists:customers,id',
+                'product_id'    => 'nullable|exists:products,id',
+                'quantity'      => 'required|integer|min:1',
+                'reason'        => 'nullable|string',
+                'refund_amount' => 'nullable|numeric|min:0',
+                'status'        => 'nullable|string|max:20',
             ]);
 
-            // Default values
-            if (!isset($validated['customer_type'])) {
-                $validated['customer_type'] = 'RETAIL';
-            }
-            if (!isset($validated['is_active'])) {
-                $validated['is_active'] = true;
+            if (!isset($validated['status'])) {
+                $validated['status'] = 'Pending';
             }
 
-            $customer = Customer::create($validated);
+            $return = ReturnGood::create($validated);
 
             if ($request->expectsJson() || $request->is('api/*')) {
                 return response()->json([
                     'success' => true,
-                    'message' => 'Customer created successfully',
-                    'data'    => $customer,
+                    'message' => 'Return recorded successfully',
+                    'data'    => $return->load(['customer', 'product']),
                 ], 201);
             }
 
-            return redirect()->back()->with('success', 'Customer created successfully!');
+            return redirect()->back()->with('success', 'Return recorded successfully!');
         } catch (\Illuminate\Validation\ValidationException $e) {
             if ($request->expectsJson() || $request->is('api/*')) {
                 return response()->json([
@@ -70,7 +69,7 @@ class customersController extends Controller
             if ($request->expectsJson() || $request->is('api/*')) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Failed to create customer: ' . $e->getMessage(),
+                    'message' => 'Failed to record return: ' . $e->getMessage(),
                 ], 500);
             }
 
@@ -79,61 +78,61 @@ class customersController extends Controller
     }
 
     /**
-     * Get a single customer
+     * Get a single return record
      */
     public function show(Request $request, $id)
     {
-        $customer = Customer::findOrFail($id);
+        $return = ReturnGood::with(['customer', 'product'])->findOrFail($id);
 
         if ($request->expectsJson() || $request->is('api/*')) {
-            return response()->json($customer);
+            return response()->json($return);
         }
 
-        return view('customers.show', compact('customer'));
+        return view('returns.show', compact('return'));
     }
 
     /**
-     * Edit customer (API-friendly – same as show)
+     * Edit endpoint (API-friendly)
      */
     public function edit(Request $request, $id)
     {
-        $customer = Customer::findOrFail($id);
+        $return = ReturnGood::with(['customer', 'product'])->findOrFail($id);
 
         if ($request->expectsJson() || $request->is('api/*')) {
-            return response()->json($customer);
+            return response()->json($return);
         }
 
-        return view('customers.edit', compact('customer'));
+        return view('returns.edit', compact('return'));
     }
 
     /**
-     * Update a customer
+     * Update a return record
      */
     public function update(Request $request, $id)
     {
         try {
             $validated = $request->validate([
-                'name'          => 'sometimes|required|string|max:255',
-                'email'         => 'nullable|email|max:150',
-                'phone'         => 'nullable|string|max:50',
-                'address'       => 'nullable|string',
-                'customer_type' => 'nullable|string|max:50',
-                'credit_limit'  => 'nullable|numeric|min:0',
-                'is_active'     => 'nullable|boolean',
+                'return_date'   => 'nullable|date',
+                'customer_id'   => 'nullable|exists:customers,id',
+                'product_id'    => 'nullable|exists:products,id',
+                'quantity'      => 'nullable|integer|min:1',
+                'reason'        => 'nullable|string',
+                'refund_amount' => 'nullable|numeric|min:0',
+                'status'        => 'nullable|string|max:20',
             ]);
 
-            $customer = Customer::findOrFail($id);
-            $customer->update($validated);
+            $return = ReturnGood::findOrFail($id);
+            $return->update($validated);
 
             if ($request->expectsJson() || $request->is('api/*')) {
                 return response()->json([
                     'success' => true,
-                    'message' => 'Customer updated successfully',
-                    'data'    => $customer,
+                    'message' => 'Return updated successfully',
+                    'data'    => $return->load(['customer', 'product']),
                 ]);
             }
 
-            return redirect()->back()->with('success', 'Customer updated successfully!');
+            return redirect()->back()->with('success', 'Return updated successfully!');
         } catch (\Illuminate\Validation\ValidationException $e) {
             if ($request->expectsJson() || $request->is('api/*')) {
                 return response()->json([
@@ -148,7 +147,7 @@ class customersController extends Controller
             if ($request->expectsJson() || $request->is('api/*')) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Failed to update customer: ' . $e->getMessage(),
+                    'message' => 'Failed to update return: ' . $e->getMessage(),
                 ], 500);
             }
 
@@ -157,27 +156,27 @@ class customersController extends Controller
     }
 
     /**
-     * Delete a customer
+     * Delete a return record
      */
     public function destroy(Request $request, $id)
     {
         try {
-            $customer = Customer::findOrFail($id);
-            $customer->delete();
+            $return = ReturnGood::findOrFail($id);
+            $return->delete();
 
             if ($request->expectsJson() || $request->is('api/*')) {
                 return response()->json([
                     'success' => true,
-                    'message' => 'Customer deleted successfully',
+                    'message' => 'Return deleted successfully',
                 ], 200);
             }
 
-            return redirect()->back()->with('success', 'Customer deleted successfully!');
+            return redirect()->back()->with('success', 'Return deleted successfully!');
         } catch (\Exception $e) {
             if ($request->expectsJson() || $request->is('api/*')) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Failed to delete customer: ' . $e->getMessage(),
+                    'message' => 'Failed to delete return: ' . $e->getMessage(),
                 ], 500);
             }
 
@@ -185,3 +184,5 @@ class customersController extends Controller
         }
     }
 }
+
+

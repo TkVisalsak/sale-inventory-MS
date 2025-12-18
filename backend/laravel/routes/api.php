@@ -4,6 +4,8 @@ use App\Http\Controllers\CategoriesController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\productsController;
 use App\Http\Controllers\BatchesController;
+use App\Http\Controllers\customersController;
+use App\Http\Controllers\ReturnsController;
 use Illuminate\Support\Facades\Route;
 
 // Category API Routes
@@ -33,4 +35,20 @@ Route::get('batches/{id}', [BatchesController::class, 'show']);
 Route::post('batches', [BatchesController::class, 'store']);
 Route::put('batches/{id}', [BatchesController::class, 'update']);
 Route::delete('batches/{id}', [BatchesController::class, 'destroy']);
+
+// Customers API Routes
+Route::get('customers', [customersController::class, 'index']);
+Route::get('customers/{id}', [customersController::class, 'show']);
+Route::get('customers-edit/{id}', [customersController::class, 'edit']); // optional separate edit endpoint
+Route::post('customers', [customersController::class, 'store']);
+Route::put('customers/{id}', [customersController::class, 'update']);
+Route::delete('customers/{id}', [customersController::class, 'destroy']);
+
+// Returns API Routes
+Route::get('returns', [ReturnsController::class, 'index']);
+Route::get('returns/{id}', [ReturnsController::class, 'show']);
+Route::get('returns-edit/{id}', [ReturnsController::class, 'edit']); // optional separate edit endpoint
+Route::post('returns', [ReturnsController::class, 'store']);
+Route::put('returns/{id}', [ReturnsController::class, 'update']);
+Route::delete('returns/{id}', [ReturnsController::class, 'destroy']);
 

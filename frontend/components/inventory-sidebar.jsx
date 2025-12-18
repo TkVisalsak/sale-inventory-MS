@@ -65,7 +65,7 @@ const menuItems = [
   },
   {
     title: "Returns",
-    href: "/inventory_user/returns",
+    href: "/inventory_user/return",
     icon: RefreshCcw
   },
   {
@@ -76,7 +76,7 @@ const menuItems = [
   {
     title: "Customers",
     icon: Users,
-    href: "/inventory_user/customers",
+      href: "/inventory_user/customer",
   },
   {
     title: "Stock Adjustments",
