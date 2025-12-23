@@ -9,20 +9,38 @@ class ProductBatches extends Model
 {
     use HasFactory;
 
+    protected $table = 'batches';
+
+    protected $primaryKey = 'batch_id';
+
     protected $fillable = [
-        'product_id',
-        'batch_number',
-        'expiration_date',
-        'buy_price',
-        'market_price',
-        'current_quantity',
-        'warehouse_location',
-        'received_date',
+        'supplier_id',
+        'invoice_no',
+        'purchase_date',
+        'total_cost',
+        'status',
+        'created_by',
     ];
 
-    public function product()
+    /*
+    |--------------------------------------------------------------------------
+    | Relationships
+    |--------------------------------------------------------------------------
+    */
+
+    public function supplier()
     {
-        return $this->belongsTo(Products::class);
+        return $this->belongsTo(Supplier::class);
+    }
+
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function items()
+    {
+        return $this->hasMany(Batchitem::class, 'batch_id');
     }
 
     public function stockMovements()

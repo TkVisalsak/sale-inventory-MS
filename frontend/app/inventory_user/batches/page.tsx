@@ -6,10 +6,10 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Plus, Search, Edit, Trash2, Boxes, Loader2, Eye, X } from "lucide-react"
+import { Plus, Search, Edit, Trash2, Boxes, Loader2, Eye, X, ChevronDown, ChevronRight } from "lucide-react"
 import Link from "next/link"
 import { api as batchApi } from "@/lib/inventory-api/batch-api"
-import { api as productApi } from "@/lib/inventory-api/product-api"
+import { api as supplierApi } from "@/lib/inventory-api/supplier-api"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import {
   AlertDialog,
@@ -23,38 +23,49 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
-interface Batch {
-  id: number
+interface BatchItem {
+  batch_item_id: number
   product_id: number
-  batch_number?: string
-  expiration_date?: string
-  buy_price?: number
-  market_price?: number
-  current_quantity: number
-  warehouse_location?: string
-  received_date?: string
+  quantity: number
+  unit_cost: number
+  expiry_date?: string
   product?: {
     id: number
     name: string
   }
 }
 
-interface Product {
+interface Batch {
+  batch_id: number
+  supplier_id: number
+  invoice_no: string
+  purchase_date: string
+  total_cost: number
+  status: string
+  supplier?: {
+    supplier_id: number
+    name: string
+  }
+  items?: BatchItem[]
+}
+
+interface Supplier {
   id: number
   name: string
 }
 
 export default function BatchesPage() {
   const [searchQuery, setSearchQuery] = useState("")
-  const [selectedProduct, setSelectedProduct] = useState<string>("all")
+  const [selectedSupplier, setSelectedSupplier] = useState<string>("all")
   const [batches, setBatches] = useState<Batch[]>([])
-  const [products, setProducts] = useState<Product[]>([])
+  const [suppliers, setSuppliers] = useState<Supplier[]>([])
   const [loading, setLoading] = useState(true)
   const [loadingFilters, setLoadingFilters] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [batchToDelete, setBatchToDelete] = useState<Batch | null>(null)
   const [deleting, setDeleting] = useState(false)
+  const [expandedBatches, setExpandedBatches] = useState<Set<number>>(new Set())
 
   useEffect(() => {
     const fetchData = async () => {
@@ -63,29 +74,33 @@ export default function BatchesPage() {
         setLoadingFilters(true)
         setError(null)
 
-        // Fetch batches and products in parallel
-        const [batchesData, productsData] = await Promise.all([
+        // Fetch batches and suppliers in parallel
+        const [batchesData, suppliersData] = await Promise.all([
           batchApi.batches.getAll(),
-          productApi.products.getAll(),
+          supplierApi.suppliers.getAll(),
         ])
 
         // Map batches
-        const mappedBatches = Array.isArray(batchesData) ? batchesData.map((batch) => ({
-          id: batch.id,
-          product_id: batch.product_id,
-          batch_number: batch.batch_number || "",
-          expiration_date: batch.expiration_date || "",
-          buy_price: batch.buy_price || 0,
-          market_price: batch.market_price || 0,
-          current_quantity: batch.current_quantity || 0,
-          warehouse_location: batch.warehouse_location || "",
-          received_date: batch.received_date || "",
-          product: batch.product || null,
+        const mappedBatches = Array.isArray(batchesData) ? batchesData.map((batch: any) => ({
+          batch_id: batch.batch_id || batch.id,
+          supplier_id: batch.supplier_id,
+          invoice_no: batch.invoice_no || "",
+          purchase_date: batch.purchase_date || "",
+          total_cost: batch.total_cost || 0,
+          status: batch.status || "draft",
+          supplier: batch.supplier || null,
+          items: batch.items || [],
         })) : []
         setBatches(mappedBatches)
 
-        // Map products
-        setProducts(Array.isArray(productsData) ? productsData : [])
+        // Map suppliers
+        const mappedSuppliers = Array.isArray(suppliersData) 
+          ? suppliersData.map((s: any) => ({
+              id: s.supplier_id || s.id,
+              name: s.name || s.supplier_name || "",
+            }))
+          : []
+        setSuppliers(mappedSuppliers)
       } catch (err: any) {
         console.error("Error fetching data:", err)
         setError(err.message || "Failed to load data")
@@ -101,21 +116,20 @@ export default function BatchesPage() {
   const filteredBatches = batches.filter((batch) => {
     // Search filter
     const matchesSearch =
-      batch.batch_number?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      batch.product?.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      batch.warehouse_location?.toLowerCase().includes(searchQuery.toLowerCase())
+      batch.invoice_no?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      batch.supplier?.name?.toLowerCase().includes(searchQuery.toLowerCase())
 
-    // Product filter
-    const matchesProduct =
-      selectedProduct === "all" || batch.product_id === Number(selectedProduct)
+    // Supplier filter
+    const matchesSupplier =
+      selectedSupplier === "all" || batch.supplier_id === Number(selectedSupplier)
 
-    return matchesSearch && matchesProduct
+    return matchesSearch && matchesSupplier
   })
 
-  const hasActiveFilters = selectedProduct !== "all"
+  const hasActiveFilters = selectedSupplier !== "all"
 
   const clearFilters = () => {
-    setSelectedProduct("all")
+    setSelectedSupplier("all")
   }
 
   const handleDeleteClick = (batch: Batch) => {
@@ -128,9 +142,9 @@ export default function BatchesPage() {
 
     try {
       setDeleting(true)
-      await batchApi.batches.delete(batchToDelete.id.toString())
+      await batchApi.batches.delete(batchToDelete.batch_id.toString())
       // Remove the batch from the list
-      setBatches(batches.filter((b) => b.id !== batchToDelete.id))
+      setBatches(batches.filter((b) => b.batch_id !== batchToDelete.batch_id))
       setDeleteDialogOpen(false)
       setBatchToDelete(null)
     } catch (err: any) {
@@ -153,10 +167,26 @@ export default function BatchesPage() {
     return new Date(dateString).toLocaleDateString()
   }
 
-  const getStockStatus = (quantity: number) => {
-    if (quantity === 0) return { label: "Out of Stock", variant: "destructive" as const }
-    if (quantity < 10) return { label: "Low Stock", variant: "outline" as const }
-    return { label: "In Stock", variant: "secondary" as const }
+  const getStatusVariant = (status: string) => {
+    switch (status?.toLowerCase()) {
+      case "approved":
+        return "secondary" as const
+      case "received":
+        return "default" as const
+      case "draft":
+      default:
+        return "outline" as const
+    }
+  }
+
+  const toggleBatchExpansion = (batchId: number) => {
+    const newExpanded = new Set(expandedBatches)
+    if (newExpanded.has(batchId)) {
+      newExpanded.delete(batchId)
+    } else {
+      newExpanded.add(batchId)
+    }
+    setExpandedBatches(newExpanded)
   }
 
   return (
@@ -193,18 +223,18 @@ export default function BatchesPage() {
             <div className="flex items-center gap-4 flex-wrap">
               <div className="flex-1 min-w-[200px]">
                 <Select
-                  value={selectedProduct}
-                  onValueChange={setSelectedProduct}
+                  value={selectedSupplier}
+                  onValueChange={setSelectedSupplier}
                   disabled={loadingFilters}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder={loadingFilters ? "Loading..." : "Filter by Product"} />
+                    <SelectValue placeholder={loadingFilters ? "Loading..." : "Filter by Supplier"} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Products</SelectItem>
-                    {products.map((product) => (
-                      <SelectItem key={product.id} value={product.id.toString()}>
-                        {product.name}
+                    <SelectItem value="all">All Suppliers</SelectItem>
+                    {suppliers.map((supplier) => (
+                      <SelectItem key={supplier.id} value={supplier.id.toString()}>
+                        {supplier.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -238,22 +268,20 @@ export default function BatchesPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Product</TableHead>
-                  <TableHead>Batch Number</TableHead>
-                  <TableHead>Quantity</TableHead>
-                  <TableHead>Buy Price</TableHead>
-                  <TableHead>Market Price</TableHead>
-                  <TableHead>Expiration Date</TableHead>
-                  <TableHead>Location</TableHead>
+                  <TableHead className="w-[50px]"></TableHead>
+                  <TableHead>Invoice No</TableHead>
+                  <TableHead>Supplier</TableHead>
+                  <TableHead>Purchase Date</TableHead>
+                  <TableHead>Total Cost</TableHead>
+                  <TableHead>Items</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Actions</TableHead>
-                  <TableHead>Views</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredBatches.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                       {searchQuery || hasActiveFilters
                         ? "No batches found matching your filters."
                         : "No batches found."}
@@ -261,60 +289,103 @@ export default function BatchesPage() {
                   </TableRow>
                 ) : (
                   filteredBatches.map((batch) => {
-                    const stockStatus = getStockStatus(batch.current_quantity)
+                    const isExpanded = expandedBatches.has(batch.batch_id)
+                    const itemsCount = batch.items?.length || 0
                     return (
-                      <TableRow key={batch.id}>
-                        <TableCell>
-                          <div className="flex items-center gap-3">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                              <Boxes className="h-5 w-5 text-primary" />
-                            </div>
-                            <span className="font-medium">{batch.product?.name || "N/A"}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="font-mono text-sm">
-                          {batch.batch_number || "N/A"}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline">{batch.current_quantity}</Badge>
-                        </TableCell>
-                        <TableCell>{formatCurrency(batch.buy_price || 0)}</TableCell>
-                        <TableCell>{formatCurrency(batch.market_price || 0)}</TableCell>
-                        <TableCell>{formatDate(batch.expiration_date)}</TableCell>
-                        <TableCell>
-                          <span className="text-muted-foreground">
-                            {batch.warehouse_location || "N/A"}
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={stockStatus.variant}>
-                            {stockStatus.label}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex gap-2">
-                            <Link href={`/inventory_user/batches/edit?id=${batch.id}`}>
-                              <Button variant="ghost" size="icon-sm">
-                                <Edit className="h-4 w-4" />
+                      <>
+                        <TableRow key={batch.batch_id}>
+                          <TableCell>
+                            {itemsCount > 0 && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6"
+                                onClick={() => toggleBatchExpansion(batch.batch_id)}
+                              >
+                                {isExpanded ? (
+                                  <ChevronDown className="h-4 w-4" />
+                                ) : (
+                                  <ChevronRight className="h-4 w-4" />
+                                )}
                               </Button>
-                            </Link>
-                            <Button
-                              variant="ghost"
-                              size="icon-sm"
-                              onClick={() => handleDeleteClick(batch)}
-                            >
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Link href={`/inventory_user/batches/view?id=${batch.id}`}>
-                            <Button variant="ghost" size="icon-sm">
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                          </Link>
-                        </TableCell>
-                      </TableRow>
+                            )}
+                          </TableCell>
+                          <TableCell className="font-mono text-sm font-medium">
+                            {batch.invoice_no || "N/A"}
+                          </TableCell>
+                          <TableCell>
+                            <span className="font-medium">{batch.supplier?.name || "N/A"}</span>
+                          </TableCell>
+                          <TableCell>{formatDate(batch.purchase_date)}</TableCell>
+                          <TableCell className="font-medium">{formatCurrency(batch.total_cost)}</TableCell>
+                          <TableCell>
+                            <Badge variant="outline">{itemsCount} item{itemsCount !== 1 ? "s" : ""}</Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant={getStatusVariant(batch.status)}>
+                              {batch.status || "Draft"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex gap-2">
+                              <Link href={`/inventory_user/batches/edit?id=${batch.batch_id}`}>
+                                <Button variant="ghost" size="icon-sm">
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                              </Link>
+                              <Button
+                                variant="ghost"
+                                size="icon-sm"
+                                onClick={() => handleDeleteClick(batch)}
+                              >
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                        {isExpanded && itemsCount > 0 && (
+                          <TableRow>
+                            <TableCell colSpan={8} className="bg-muted/50">
+                              <div className="py-4">
+                                <h4 className="font-semibold mb-3">Batch Items</h4>
+                                <Table>
+                                  <TableHeader>
+                                    <TableRow>
+                                      <TableHead>Product</TableHead>
+                                      <TableHead>Quantity</TableHead>
+                                      <TableHead>Unit Cost</TableHead>
+                                      <TableHead>Subtotal</TableHead>
+                                      <TableHead>Expiry Date</TableHead>
+                                    </TableRow>
+                                  </TableHeader>
+                                  <TableBody>
+                                    {batch.items?.map((item) => (
+                                      <TableRow key={item.batch_item_id}>
+                                        <TableCell>
+                                          <div className="flex items-center gap-3">
+                                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
+                                              <Boxes className="h-4 w-4 text-primary" />
+                                            </div>
+                                            <span className="font-medium">{item.product?.name || "N/A"}</span>
+                                          </div>
+                                        </TableCell>
+                                        <TableCell>
+                                          <Badge variant="outline">{item.quantity}</Badge>
+                                        </TableCell>
+                                        <TableCell>{formatCurrency(item.unit_cost)}</TableCell>
+                                        <TableCell className="font-medium">
+                                          {formatCurrency(item.quantity * item.unit_cost)}
+                                        </TableCell>
+                                        <TableCell>{formatDate(item.expiry_date)}</TableCell>
+                                      </TableRow>
+                                    ))}
+                                  </TableBody>
+                                </Table>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </>
                     )
                   })
                 )}
@@ -330,7 +401,7 @@ export default function BatchesPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete the batch "{batchToDelete?.batch_number || batchToDelete?.product?.name}". 
+              This will permanently delete the batch with invoice number "{batchToDelete?.invoice_no}". 
               This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -356,4 +427,3 @@ export default function BatchesPage() {
     </div>
   )
 }
-
