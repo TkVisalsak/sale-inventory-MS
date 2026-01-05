@@ -22,7 +22,6 @@ import {
   MoveRight,
   FilePlus2,
   RefreshCcw,
-  ListOrdered,
 } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -32,60 +31,51 @@ const menuItems = [
   {
     title: "Dashboard",
     icon: LayoutDashboard,
-    href: "/inventory_user/",
+    href: "/sale_user/",
   },
   {
-    title: "Analytics",
-    icon: BarChart3,
+    title: "Sales",
+    icon: FileText,
     submenu: [
-      { title: "Overview", icon: ShoppingCart, href: "/inventory_user/overview" },
-      { title: "Analytics", icon: BarChart3, href: "/inventory_user/analytics" },
-      { title: "Reports", icon: BarChart3, href: "/inventory_user/reports" },
+      { title: "Overview", icon: ShoppingCart, href: "/sale_user/overview" },
+      { title: "Sales Orders", icon: FileText, href: "/sale_user/sales_orders" },
+      { title: "Sales History", icon: Layers, href: "/sale_user/sale_history" },
+      { title: "Sale Lookup", icon: Boxes, href: "/sale_user/sale_lookup" },
+      { title: "Targets", icon: MoveRight, href: "/sale_user/targets" },
+      { title: "Promotional Schemes", icon: Truck, href: "/sale_user/promotional_schemes" },
     ],
   },
   {
-    title: "Inventory",
-    icon: Package,
-    submenu: [
-      { title: "Products", icon: Package, href: "/inventory_user/products" },
-      { title: "Categories", icon: Layers, href: "/inventory_user/categories" },
-      { title: "Batches", icon: Boxes, href: "/inventory_user/batches" },
-      { title: "Stock Movements", icon: MoveRight, href: "/inventory_user/stock-movements" },
-      { title: "Stock Adjustments", icon: RefreshCcw, href: "/inventory_user/stock-adjustments" },
-      { title: "Stock Transfers", icon: Truck, href: "/inventory_user/stock-transfers" },
-    ],
-  },
-  {
-    title: "Procurement",
-    icon: FilePlus2,
-    submenu: [
-      { title: "Purchase Requests", icon: FilePlus2, href: "/inventory_user/purchase-requests" },
-      { title: "Purchase orders", icon: ListOrdered, href: "/inventory_user/purchase-orders" },
-      { title: "Returns", icon: RefreshCcw, href: "/inventory_user/returns" },
-      { title: "Suppliers", icon: Truck, href: "/inventory_user/suppliers" },
-      { title: "Price Lists", icon: FileText, href: "/inventory_user/price-lists" },
-    ],
-  },
-  {
-    title: "Customers & Users",
+    title: "Customers",
     icon: Users,
     submenu: [
-      { title: "Customers", icon: Users, href: "/inventory_user/customers" },
-      { title: "Users", icon: UserCog, href: "/inventory_user/users" },
+      { title: "Customers", icon: Users, href: "/sale_user/customers" },
+      { title: "Payment & Receipts", icon: Package, href: "/sale_user/payment_receipts" },
+      { title: "Returns", icon: RefreshCcw, href: "/sale_user/returns" },
     ],
   },
   {
-    title: "Activity",
-    icon: Activity,
-    href: "/inventory_user/activity",
+    title: "Analytics & Reports",
+    icon: BarChart3,
+    submenu: [
+      { title: "Analytics", icon: BarChart3, href: "/sale_user/analytics" },
+      { title: "Reports", icon: FilePlus2, href: "/sale_user/reports" },
+    ],
+  },
+  {
+    title: "Users & Activity",
+    icon: UserCog,
+    submenu: [
+      { title: "Users", icon: UserCog, href: "/sale_user/users" },
+      { title: "Activity", icon: Activity, href: "/sale_user/activity" },
+    ],
   },
   {
     title: "Log Out",
     icon: Shield,
-    href: "/inventory_user/logout",
+    href: "/sale_user/logout",
   },
 ];
-
 
 
 

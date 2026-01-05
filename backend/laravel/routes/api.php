@@ -6,6 +6,10 @@ use App\Http\Controllers\productsController;
 use App\Http\Controllers\BatchesController;
 use App\Http\Controllers\customersController;
 use App\Http\Controllers\ReturnsController;
+use App\Http\Controllers\PurchaseRequestController;
+use App\Http\Controllers\StockMovementsController;
+use App\Http\Controllers\PriceListController;
+use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Route;
 
 // Category API Routes
@@ -51,4 +55,27 @@ Route::get('returns-edit/{id}', [ReturnsController::class, 'edit']); // optional
 Route::post('returns', [ReturnsController::class, 'store']);
 Route::put('returns/{id}', [ReturnsController::class, 'update']);
 Route::delete('returns/{id}', [ReturnsController::class, 'destroy']);
+
+// Purchase Requests API Routes
+Route::get('purchase-requests', [PurchaseRequestController::class, 'index']);
+Route::get('purchase-requests/{id}', [PurchaseRequestController::class, 'show']);
+Route::post('purchase-requests', [PurchaseRequestController::class, 'store']);
+
+// Stock Adjustments (Stock Movements) API Routes
+Route::get('stock-adjustments', [StockMovementsController::class, 'adjustmentsIndex']);
+Route::post('stock-adjustments', [StockMovementsController::class, 'storeAdjustment']);
+
+// Price List API Routes
+Route::get('price-lists', [PriceListController::class, 'index']);
+Route::get('price-lists/{id}', [PriceListController::class, 'show']);
+Route::post('price-lists', [PriceListController::class, 'store']);
+Route::put('price-lists/{id}', [PriceListController::class, 'update']);
+Route::delete('price-lists/{id}', [PriceListController::class, 'destroy']);
+
+// Authentication Routes (with session support) 
+Route::post('login', [AuthController::class, 'login']);
+Route::middleware('auth')->group(function () {
+    Route::get('me', [AuthController::class, 'me']);
+    Route::post('logout', [AuthController::class, 'logout']);
+});
 
