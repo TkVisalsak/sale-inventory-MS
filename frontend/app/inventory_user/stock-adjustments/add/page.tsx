@@ -30,12 +30,14 @@ export default function NewStockAdjustmentPage() {
 
   const [formData, setFormData] = useState({
     batch_id: "",
+    product_id: "",
     quantity: "",
     reference: "",
     note: "",
   })
 
   const [batches, setBatches] = useState<Batch[]>([])
+  const [batchItems, setBatchItems] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
   const [loadingBatches, setLoadingBatches] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -69,6 +71,23 @@ export default function NewStockAdjustmentPage() {
     setFormData((prev) => ({ ...prev, [field]: value }))
   }
 
+  const handleBatchChange = async (value: string) => {
+    handleChange("batch_id", value)
+    setFormData((prev) => ({ ...prev, product_id: "" }))
+    if (!value) return
+    try {
+      const data = await batchApi.batches.getById(Number(value))
+      const items = Array.isArray(data.items) ? data.items : data.items ? [data.items] : []
+      setBatchItems(items)
+      if (items.length > 0) {
+        setFormData((prev) => ({ ...prev, product_id: String(items[0].product_id || items[0].product?.id) }))
+      }
+    } catch (err) {
+      console.error("Failed to load batch items", err)
+      setBatchItems([])
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
@@ -83,8 +102,14 @@ export default function NewStockAdjustmentPage() {
       return
     }
 
+    if (!formData.product_id) {
+      setError("Product (from selected batch) is required")
+      return
+    }
+
     const payload = {
       batch_id: Number(formData.batch_id),
+      product_id: Number(formData.product_id),
       quantity: Number(formData.quantity),
       reference: formData.reference.trim() || null,
       note: formData.note.trim() || null,
@@ -141,7 +166,7 @@ export default function NewStockAdjustmentPage() {
                   <Label>Batch *</Label>
                   <Select
                     value={formData.batch_id}
-                    onValueChange={(value) => handleChange("batch_id", value)}
+                    onValueChange={(value) => handleBatchChange(value)}
                     disabled={loadingBatches}
                   >
                     <SelectTrigger>
@@ -159,6 +184,24 @@ export default function NewStockAdjustmentPage() {
                     </SelectContent>
                   </Select>
                 </div>
+
+                  {batchItems.length > 0 && (
+                    <div className="space-y-2 mt-2">
+                      <Label>Product in Batch *</Label>
+                      <Select value={formData.product_id} onValueChange={(v) => handleChange("product_id", v)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select product" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {batchItems.map((it: any) => (
+                            <SelectItem key={it.batch_item_id || it.id} value={String(it.product_id || it.product?.id)}>
+                              {it.product?.name || `Product ${it.product_id || it.product?.id}`} – {it.quantity} available
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
 
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">

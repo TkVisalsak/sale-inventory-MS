@@ -11,8 +11,8 @@ return new class extends Migration {
             $table->id('batch_id');
 
             $table->foreignId('supplier_id')
-                  ->constrained('supplier')
-                  ->restrictOnDelete();
+                ->constrained('supplier')
+                ->restrictOnDelete();
 
             $table->string('invoice_no', 100);
             $table->date('purchase_date');

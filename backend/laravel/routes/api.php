@@ -9,7 +9,10 @@ use App\Http\Controllers\ReturnsController;
 use App\Http\Controllers\PurchaseRequestController;
 use App\Http\Controllers\StockMovementsController;
 use App\Http\Controllers\PriceListController;
+use App\Http\Controllers\SalesController;
+use App\Http\Controllers\StockReservationController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\AnalyticsController;
 use Illuminate\Support\Facades\Route;
 
 // Category API Routes
@@ -60,6 +63,23 @@ Route::delete('returns/{id}', [ReturnsController::class, 'destroy']);
 Route::get('purchase-requests', [PurchaseRequestController::class, 'index']);
 Route::get('purchase-requests/{id}', [PurchaseRequestController::class, 'show']);
 Route::post('purchase-requests', [PurchaseRequestController::class, 'store']);
+
+// Sales API Routes (Sale orders / invoices)
+Route::get('sales', [SalesController::class, 'index']);
+Route::get('sales/{id}', [SalesController::class, 'show']);
+Route::post('sales', [SalesController::class, 'store']);
+Route::put('sales/{id}', [SalesController::class, 'update']);
+Route::post('sales/{id}/invoice', [SalesController::class, 'generateInvoice']);
+
+// Stock reservation endpoints for inventory_user to confirm
+Route::get('stock-reservations', [StockReservationController::class, 'index']);
+Route::put('stock-reservations/{id}', [StockReservationController::class, 'update']);
+
+// Analytics endpoints used by frontend
+Route::get('analytics/sales', [AnalyticsController::class, 'sales']);
+Route::get('analytics/revenue', [AnalyticsController::class, 'revenue']);
+Route::get('analytics/customers', [AnalyticsController::class, 'customers']);
+Route::get('analytics/products', [AnalyticsController::class, 'products']);
 
 // Stock Adjustments (Stock Movements) API Routes
 Route::get('stock-adjustments', [StockMovementsController::class, 'adjustmentsIndex']);

@@ -38,7 +38,7 @@ const menuItems = [
     icon: FileText,
     submenu: [
       { title: "Overview", icon: ShoppingCart, href: "/sale_user/overview" },
-      { title: "Sales Orders", icon: FileText, href: "/sale_user/sales_orders" },
+      { title: "Sales Orders", icon: FileText, href: "/sale_user/sale-orders" },
       { title: "Sales History", icon: Layers, href: "/sale_user/sale_history" },
       { title: "Sale Lookup", icon: Boxes, href: "/sale_user/sale_lookup" },
       { title: "Targets", icon: MoveRight, href: "/sale_user/targets" },

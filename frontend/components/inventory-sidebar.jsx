@@ -52,7 +52,7 @@ const menuItems = [
       { title: "Batches", icon: Boxes, href: "/inventory_user/batches" },
       { title: "Stock Movements", icon: MoveRight, href: "/inventory_user/stock-movements" },
       { title: "Stock Adjustments", icon: RefreshCcw, href: "/inventory_user/stock-adjustments" },
-      { title: "Stock Transfers", icon: Truck, href: "/inventory_user/stock-transfers" },
+      
     ],
   },
   {
@@ -60,17 +60,18 @@ const menuItems = [
     icon: FilePlus2,
     submenu: [
       { title: "Purchase Requests", icon: FilePlus2, href: "/inventory_user/purchase-requests" },
-      { title: "Purchase orders", icon: ListOrdered, href: "/inventory_user/purchase-orders" },
-      { title: "Returns", icon: RefreshCcw, href: "/inventory_user/returns" },
+      { title: "Purchase orders", icon: ListOrdered, href: "/inventory_user/purchase_orders" },
+      { title: "Sales orders", icon: ListOrdered, href: "/inventory_user/sale_order" },
+      { title: "Returns", icon: RefreshCcw, href: "/inventory_user/return" },
       { title: "Suppliers", icon: Truck, href: "/inventory_user/suppliers" },
-      { title: "Price Lists", icon: FileText, href: "/inventory_user/price-lists" },
+      { title: "Price Lists", icon: FileText, href: "/inventory_user/price-list" },
     ],
   },
   {
     title: "Customers & Users",
     icon: Users,
     submenu: [
-      { title: "Customers", icon: Users, href: "/inventory_user/customers" },
+      { title: "Customers", icon: Users, href: "/inventory_user/customer" },
       { title: "Users", icon: UserCog, href: "/inventory_user/users" },
     ],
   },

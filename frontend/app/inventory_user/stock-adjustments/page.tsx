@@ -33,6 +33,9 @@ interface StockAdjustment {
 export default function StockAdjustmentsPage() {
   const [adjustments, setAdjustments] = useState<StockAdjustment[]>([])
   const [searchQuery, setSearchQuery] = useState("")
+  const [typeFilter, setTypeFilter] = useState("adjust")
+  const [fromDate, setFromDate] = useState("")
+  const [toDate, setToDate] = useState("")
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -41,7 +44,15 @@ export default function StockAdjustmentsPage() {
       try {
         setLoading(true)
         setError(null)
-        const data = await stockAdjustmentApi.adjustments.getAll()
+
+        const params = new URLSearchParams()
+        if (searchQuery) params.set('q', searchQuery)
+        if (typeFilter) params.set('type', typeFilter)
+        if (fromDate) params.set('from', fromDate)
+        if (toDate) params.set('to', toDate)
+
+        const qs = params.toString()
+        const data = await stockAdjustmentApi.adjustments.getAll(qs)
         setAdjustments(Array.isArray(data) ? data : [])
       } catch (err: any) {
         console.error("Error fetching stock adjustments:", err)
@@ -51,8 +62,10 @@ export default function StockAdjustmentsPage() {
       }
     }
 
-    fetchAdjustments()
-  }, [])
+    // small debounce for search/filter UX
+    const t = setTimeout(() => fetchAdjustments(), 250)
+    return () => clearTimeout(t)
+  }, [searchQuery, typeFilter, fromDate, toDate])
 
   const filtered = useMemo(() => {
     const q = searchQuery.toLowerCase()
@@ -177,6 +190,36 @@ export default function StockAdjustmentsPage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
+            </div>
+            <div className="flex items-center gap-2">
+              <select
+                value={typeFilter}
+                onChange={(e) => setTypeFilter(e.target.value)}
+                className="rounded-md border px-3 py-1 text-sm"
+              >
+                <option value="">All types</option>
+                <option value="adjust">Adjust</option>
+                <option value="in">In</option>
+                <option value="out">Out</option>
+              </select>
+
+              <input
+                type="date"
+                value={fromDate}
+                onChange={(e) => setFromDate(e.target.value)}
+                className="rounded-md border px-2 py-1 text-sm"
+                title="From date"
+              />
+              <input
+                type="date"
+                value={toDate}
+                onChange={(e) => setToDate(e.target.value)}
+                className="rounded-md border px-2 py-1 text-sm"
+                title="To date"
+              />
+              <Button variant="ghost" onClick={() => { setSearchQuery(""); setTypeFilter("adjust"); setFromDate(""); setToDate(""); }}>
+                Clear
+              </Button>
             </div>
           </div>
         </CardHeader>

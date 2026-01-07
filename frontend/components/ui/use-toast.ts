@@ -184,6 +184,8 @@ function useToast() {
   return {
     ...state,
     toast,
+    update: (toastId: string, props: Partial<ToasterToast>) =>
+      dispatch({ type: 'UPDATE_TOAST', toast: { ...props, id: toastId } as ToasterToast }),
     dismiss: (toastId?: string) => dispatch({ type: 'DISMISS_TOAST', toastId }),
   }
 }
