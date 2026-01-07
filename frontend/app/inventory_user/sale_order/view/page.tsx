@@ -160,12 +160,35 @@ export default function ViewSalePage() {
                 if (!confirm('Reserve stock for this order? This will lock the order and deduct stock using FIFO.')) return
                 const t = toast.toast({ title: 'Reserving stock...' })
                 try {
-                  const reservations = (sale as any).reservations || []
-                  if (reservations.length === 0) throw new Error('No reservations found for this order')
+                  let reservations = (sale as any).reservations || []
+                  console.log('reservations for sale', reservations)
+
+                  // If no reservations exist yet, call generateInvoice which will create pending reservations
+                  if (reservations.length === 0) {
+                    const g = await saleApi.sales.generateInvoice(String(sale.id))
+                    console.log('generateInvoice response', g)
+                    const refreshed = await saleApi.sales.getById(String(sale.id))
+                    setSale(refreshed as SaleRow)
+                    reservations = (refreshed as any).reservations || []
+                    console.log('refreshed reservations', reservations)
+                    if (reservations.length === 0) throw new Error('No reservations found for this order after generateInvoice')
+                  }
 
                   // process reservations sequentially so backend can handle transactional deduction per-reservation
+                  // guard against reservation objects missing an `id` (prevents PUT /stock-reservations/undefined)
+                  let missingIdCount = 0
                   for (const r of reservations) {
+                    if (!r || !r.id) {
+                      console.error('Skipping reservation without id', r)
+                      missingIdCount++
+                      continue
+                    }
+                    // backend will perform FIFO batch deduction when reservation status becomes 'reserved'
                     await saleApi.stockReservations.update(String(r.id), { status: 'reserved' })
+                  }
+
+                  if (missingIdCount > 0) {
+                    throw new Error(`${missingIdCount} reservation(s) were missing IDs and were skipped`)
                   }
 
                   toast.update(t.id, { title: 'Stock reserved' })

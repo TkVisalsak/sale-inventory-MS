@@ -7,6 +7,7 @@ use App\Http\Controllers\BatchesController;
 use App\Http\Controllers\customersController;
 use App\Http\Controllers\ReturnsController;
 use App\Http\Controllers\PurchaseRequestController;
+use App\Http\Controllers\PurchaseOrderController;
 use App\Http\Controllers\StockMovementsController;
 use App\Http\Controllers\PriceListController;
 use App\Http\Controllers\SalesController;
@@ -63,6 +64,10 @@ Route::delete('returns/{id}', [ReturnsController::class, 'destroy']);
 Route::get('purchase-requests', [PurchaseRequestController::class, 'index']);
 Route::get('purchase-requests/{id}', [PurchaseRequestController::class, 'show']);
 Route::post('purchase-requests', [PurchaseRequestController::class, 'store']);
+
+// Purchase Orders API Routes
+Route::get('purchase-orders', [PurchaseOrderController::class, 'index']);
+Route::get('purchase-orders/{id}', [PurchaseOrderController::class, 'show']);
 
 // Sales API Routes (Sale orders / invoices)
 Route::get('sales', [SalesController::class, 'index']);

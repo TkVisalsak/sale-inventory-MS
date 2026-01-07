@@ -90,10 +90,12 @@ class SalesController extends Controller
 
     public function update(Request $request, $id)
     {
-        $sale = Sale::find($id);
+        $sale = Sale::with(['items','reservations'])->find($id);
         if (!$sale) return response()->json(['message' => 'Sale not found'], 404);
 
         $data = $request->only(['order_status','payment_status']);
+        $oldStatus = $sale->order_status;
+
         if (isset($data['order_status'])) {
             $sale->order_status = $data['order_status'];
         }
@@ -101,6 +103,33 @@ class SalesController extends Controller
             $sale->payment_status = $data['payment_status'];
         }
         $sale->save();
+
+        // If the order was submitted via the update endpoint, create pending stock reservations
+        // for any items that don't already have one. This matches the behavior when creating
+        // a sale with order_status=submitted or calling generateInvoice.
+        if (isset($data['order_status']) && $data['order_status'] === 'submitted') {
+            foreach ($sale->items as $it) {
+                $exists = StockReservation::where('sale_id', $sale->id)
+                    ->where('product_id', $it->product_id)
+                    ->where('batch_id', $it->batch_id)
+                    ->exists();
+
+                if (!$exists) {
+                    StockReservation::create([
+                        'sale_id' => $sale->id,
+                        'product_id' => $it->product_id,
+                        'batch_id' => $it->batch_id,
+                        'quantity' => $it->quantity,
+                        'status' => 'pending',
+                        'expires_at' => null,
+                    ]);
+                }
+            }
+
+            // move to pending_inventory to indicate inventory must confirm
+            $sale->order_status = 'pending_inventory';
+            $sale->save();
+        }
 
         return $sale->fresh();
     }
