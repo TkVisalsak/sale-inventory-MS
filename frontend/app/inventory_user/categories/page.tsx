@@ -1,15 +1,30 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Plus, Search, Edit, Trash2, FolderTree, Loader2, Eye } from "lucide-react"
-import Link from "next/link"
-import { api } from "@/lib/inventory-api/category-api"
-import { Alert, AlertDescription } from "@/components/ui/alert"
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Plus,
+  Search,
+  Edit,
+  Trash2,
+  FolderTree,
+  Loader2,
+  Eye,
+} from "lucide-react";
+import Link from "next/link";
+import { api } from "@/lib/inventory-api/category-api";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,87 +34,94 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
+} from "@/components/ui/alert-dialog";
 
 interface Category {
-  id: number
-  name: string
-  description: string
-  productCount: number
-  status: string
+  id: number;
+  name: string;
+  description: string;
+  productCount: number;
+  status: string;
 }
 
 export default function CategoriesPage() {
-  const [searchQuery, setSearchQuery] = useState("")
-  const [categories, setCategories] = useState<Category[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-  const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(null)
-  const [deleting, setDeleting] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("");
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(
+    null
+  );
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        setLoading(true)
-        setError(null)
-        const data = await api.categories.getAll()
+        setLoading(true);
+        setError(null);
+        const data = await api.categories.getAll();
         // Map API response to expected format
-        const mappedCategories = Array.isArray(data) ? data.map((cat) => ({
-          id: cat.id,
-          name: cat.name || "",
-          description: cat.description || "",
-          productCount: cat.products_count || cat.productCount || 0,
-          status: cat.status || (cat.is_active !== false ? "active" : "inactive"),
-        })) : []
-        setCategories(mappedCategories)
+        const mappedCategories = Array.isArray(data)
+          ? data.map((cat) => ({
+              id: cat.id,
+              name: cat.name || "",
+              description: cat.description || "",
+              productCount: cat.products_count || cat.productCount || 0,
+              status:
+                cat.status || (cat.is_active !== false ? "active" : "inactive"),
+            }))
+          : [];
+        setCategories(mappedCategories);
       } catch (err: any) {
-        console.error("Error fetching categories:", err)
-        setError(err.message || "Failed to load categories")
+        console.error("Error fetching categories:", err);
+        setError(err.message || "Failed to load categories");
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchCategories()
-  }, [])
+    fetchCategories();
+  }, []);
 
   const filteredCategories = categories.filter(
     (category) =>
       category.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      category.description.toLowerCase().includes(searchQuery.toLowerCase()),
-  )
+      category.description.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const handleDeleteClick = (category: Category) => {
-    setCategoryToDelete(category)
-    setDeleteDialogOpen(true)
-  }
+    setCategoryToDelete(category);
+    setDeleteDialogOpen(true);
+  };
 
   const handleDeleteConfirm = async () => {
-    if (!categoryToDelete) return
+    if (!categoryToDelete) return;
 
     try {
-      setDeleting(true)
-      await api.categories.delete(categoryToDelete.id.toString())
+      setDeleting(true);
+      await api.categories.delete(categoryToDelete.id.toString());
       // Remove the category from the list
-      setCategories(categories.filter((cat) => cat.id !== categoryToDelete.id))
-      setDeleteDialogOpen(false)
-      setCategoryToDelete(null)
+      setCategories(categories.filter((cat) => cat.id !== categoryToDelete.id));
+      setDeleteDialogOpen(false);
+      setCategoryToDelete(null);
     } catch (err: any) {
-      console.error("Error deleting category:", err)
-      setError(err.message || "Failed to delete category")
-      setDeleteDialogOpen(false)
+      console.error("Error deleting category:", err);
+      setError(err.message || "Failed to delete category");
+      setDeleteDialogOpen(false);
     } finally {
-      setDeleting(false)
+      setDeleting(false);
     }
-  }
+  };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-balance">Categories</h1>
-          <p className="text-muted-foreground">Organize your products into categories</p>
+          <p className="text-muted-foreground">
+            Organize your products into categories
+          </p>
         </div>
         <Link href="/inventory_user/categories/add">
           <Button>
@@ -143,16 +165,21 @@ export default function CategoriesPage() {
                   <TableHead>Description</TableHead>
                   <TableHead>Products</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead >Actions</TableHead>
+                  <TableHead>Actions</TableHead>
                   <TableHead>views</TableHead>
                 </TableRow>
               </TableHeader>
-            
+
               <TableBody>
                 {filteredCategories.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                      {searchQuery ? "No categories found matching your search." : "No categories found."}
+                    <TableCell
+                      colSpan={6}
+                      className="text-center py-8 text-muted-foreground"
+                    >
+                      {searchQuery
+                        ? "No categories found matching your search."
+                        : "No categories found."}
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -167,13 +194,18 @@ export default function CategoriesPage() {
                         </div>
                       </TableCell>
                       <TableCell className="max-w-md">
-                        <p className="truncate text-muted-foreground">{category.description}</p>
+                        <p className="truncate text-muted-foreground">
+                          {category.description}
+                        </p>
                       </TableCell>
                       <TableCell>
-                        <Badge variant="secondary">{category.productCount} products</Badge>
+                        <Badge variant="secondary">
+                          {category.productCount}{" "}
+                          {category.productCount === 1 ? "product" : "products"}
+                        </Badge>
                       </TableCell>
 
-                    {/* status */}
+                      {/* status */}
                       <TableCell>
                         {category.status === "active" ? (
                           <Badge variant="secondary">Active</Badge>
@@ -184,13 +216,15 @@ export default function CategoriesPage() {
                       {/* action */}
                       <TableCell>
                         <div className="flex gap-2">
-                          <Link href={`/inventory_user/categories/edit?id=${category.id}`}>
+                          <Link
+                            href={`/inventory_user/categories/edit?id=${category.id}`}
+                          >
                             <Button variant="ghost" size="icon-sm">
                               <Edit className="h-4 w-4" />
                             </Button>
                           </Link>
-                          <Button 
-                            variant="ghost" 
+                          <Button
+                            variant="ghost"
                             size="icon-sm"
                             onClick={() => handleDeleteClick(category)}
                           >
@@ -200,7 +234,9 @@ export default function CategoriesPage() {
                       </TableCell>
                       {/* view */}
                       <TableCell>
-                        <Link href={`/inventory_user/categories/view?id=${category.id}`}>
+                        <Link
+                          href={`/inventory_user/categories/view?id=${category.id}`}
+                        >
                           <Button variant="ghost" size="icon-sm">
                             <Eye className="h-4 w-4" />
                           </Button>
@@ -221,8 +257,8 @@ export default function CategoriesPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete the category "{categoryToDelete?.name}". 
-              This action cannot be undone.
+              This will permanently delete the category "
+              {categoryToDelete?.name}". This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -245,5 +281,5 @@ export default function CategoriesPage() {
         </AlertDialogContent>
       </AlertDialog>
     </div>
-  )
+  );
 }

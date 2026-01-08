@@ -12,7 +12,8 @@ class CategoriesController extends Controller
      */
     public function categoriesIndex(Request $request)
     {
-        $categories = Category::all();
+        // Include products_count so the frontend can show how many products each category has
+        $categories = Category::withCount('products')->get();
         
         if ($request->expectsJson() || $request->is('api/*')) {
             return response()->json($categories);

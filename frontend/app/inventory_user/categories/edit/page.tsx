@@ -70,7 +70,7 @@ export default function EditCategoryPage() {
       }
 
       await api.categories.update(categoryId!, categoryData)
-      router.push("/inventory/categories")
+      router.push("/inventory_user/categories")
     } catch (err: any) {
       console.error("Error updating category:", err)
       
@@ -93,7 +93,7 @@ export default function EditCategoryPage() {
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-4">
-          <Link href="/inventory/categories">
+          <Link href="/inventory_user/categories">
             <Button variant="ghost" size="icon">
               <ArrowLeft className="h-4 w-4" />
             </Button>
@@ -112,7 +112,7 @@ export default function EditCategoryPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Link href="/inventory/categories">
+        <Link href="/inventory_user/categories">
           <Button variant="ghost" size="icon">
             <ArrowLeft className="h-4 w-4" />
           </Button>
@@ -178,7 +178,7 @@ export default function EditCategoryPage() {
                     </>
                   )}
                 </Button>
-                <Link href="/inventory/categories" className="block">
+                <Link href="/inventory_user/categories" className="block">
                   <Button type="button" variant="outline" className="w-full bg-transparent" disabled={loading}>
                     Cancel
                   </Button>

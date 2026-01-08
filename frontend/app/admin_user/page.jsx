@@ -94,9 +94,8 @@ export default function DashboardPage() {
                   <stat.icon className="h-6 w-6 text-primary" />
                 </div>
                 <div
-                  className={`flex items-center gap-1 text-sm font-medium ${
-                    stat.trend === "up" ? "text-success" : "text-destructive"
-                  }`}
+                  className={`flex items-center gap-1 text-sm font-medium ${stat.trend === "up" ? "text-success" : "text-destructive"
+                    }`}
                 >
                   {stat.trend === "up" ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
                   {stat.change}
@@ -203,9 +202,8 @@ export default function DashboardPage() {
                   <div className="text-right">
                     <p className="font-semibold">${sale.amount.toFixed(2)}</p>
                     <span
-                      className={`inline-block rounded-full px-2 py-1 text-xs ${
-                        sale.status === "completed" ? "bg-success/10 text-success" : "bg-warning/10 text-warning"
-                      }`}
+                      className={`inline-block rounded-full px-2 py-1 text-xs ${sale.status === "completed" ? "bg-success/10 text-success" : "bg-warning/10 text-warning"
+                        }`}
                     >
                       {sale.status}
                     </span>

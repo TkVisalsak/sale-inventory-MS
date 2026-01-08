@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\DB;
 use App\Models\Sale;
 use App\Models\SaleItem;
 use App\Models\StockReservation;
+use App\Models\Batchitem;
+use App\Models\StockMovement;
 
 class SalesController extends Controller
 {
@@ -136,6 +138,9 @@ class SalesController extends Controller
 
     // Generate invoice for a sale: if sale is draft, transition to pending_inventory
     // and create pending stock reservations for items that don't have them yet.
+    // Optional behaviour: if request body contains { fulfill: true }, attempt to
+    // deduct stock immediately (FIFO or batch-specific), mark reservations as
+    // 'reserved', and update sale status. If insufficient stock, returns 400.
     public function generateInvoice(Request $request, $id)
     {
         $sale = Sale::with(['items'])->find($id);
@@ -166,7 +171,127 @@ class SalesController extends Controller
             }
         }
 
-        // Build simple invoice payload and return
+        // If caller requested immediate fulfillment, attempt to reserve and deduct stock
+        if ($request->input('fulfill')) {
+            try {
+                DB::transaction(function () use ($sale) {
+                    foreach ($sale->items as $it) {
+                        // Skip if there's already a reserved reservation for this item
+                        $existing = StockReservation::where('sale_id', $sale->id)
+                            ->where('product_id', $it->product_id)
+                            ->where('batch_id', $it->batch_id)
+                            ->first();
+
+                        if ($existing && $existing->status === 'reserved') {
+                            continue;
+                        }
+
+                        $qtyToDeduct = (int) $it->quantity;
+
+                        // Build query for batch items: if specific batch_id provided, target that batch only
+                        if ($it->batch_id) {
+                            $items = Batchitem::where('batch_id', $it->batch_id)
+                                ->where('product_id', $it->product_id)
+                                ->where('quantity', '>', 0)
+                                ->orderBy('batch_item_id', 'asc')
+                                ->get();
+                        } else {
+                            // join with batches to order by purchase_date (FIFO)
+                            $items = Batchitem::where('product_id', $it->product_id)
+                                ->where('quantity', '>', 0)
+                                ->join('batches', 'batch_items.batch_id', '=', 'batches.batch_id')
+                                ->orderBy('batches.purchase_date', 'asc')
+                                ->select('batch_items.*')
+                                ->get();
+                        }
+
+                        foreach ($items as $bi) {
+                            if ($qtyToDeduct <= 0) break;
+                            $available = (int) $bi->quantity;
+                            if ($available <= 0) continue;
+                            $take = min($available, $qtyToDeduct);
+
+                            // decrement batch item quantity
+                            $bi->quantity = $available - $take;
+                            $bi->save();
+
+                            // record stock movement
+                            StockMovement::create([
+                                'batch_id' => $bi->batch_id,
+                                'movement_type' => 'out',
+                                'quantity' => $take,
+                                'reference' => 'sale:' . $sale->id,
+                                'movement_date' => now(),
+                                'note' => 'Fulfilled by generateInvoice',
+                            ]);
+
+                            $qtyToDeduct -= $take;
+                        }
+
+                        if ($qtyToDeduct > 0) {
+                            // not enough stock; rollback via exception
+                            throw new \Exception('Insufficient stock to fulfill sale for product_id=' . $it->product_id);
+                        }
+
+                        // mark or create reservation as reserved
+                        if ($existing) {
+                            $existing->status = 'reserved';
+                            $existing->save();
+                        } else {
+                            StockReservation::create([
+                                'sale_id' => $sale->id,
+                                'product_id' => $it->product_id,
+                                'batch_id' => $it->batch_id,
+                                'quantity' => $it->quantity,
+                                'status' => 'reserved',
+                                'expires_at' => null,
+                            ]);
+                        }
+                    }
+
+                    // If all reservations for the sale are reserved, mark sale as reserved
+                    $sale->load('reservations');
+                    $all = $sale->reservations()->pluck('status')->unique();
+                    if ($all->count() === 1 && $all->first() === 'reserved') {
+                        $sale->order_status = 'reserved';
+                        $sale->save();
+                    }
+                });
+            } catch (\Exception $e) {
+                return response()->json(['message' => $e->getMessage()], 400);
+            }
+
+            // reload relations so invoice reflects changes
+            $sale->load(['items.product','customer','user','reservations']);
+
+            $invoice = [
+                'invoice_number' => $sale->invoice_number,
+                'sale_id' => $sale->id,
+                'sale_date' => $sale->sale_date,
+                'customer' => $sale->customer,
+                'items' => $sale->items->map(function ($it) {
+                    return [
+                        'product' => $it->product,
+                        'batch_id' => $it->batch_id,
+                        'quantity' => $it->quantity,
+                        'unit_price' => $it->unit_price,
+                        'discount' => $it->discount,
+                        'subtotal' => $it->subtotal,
+                    ];
+                }),
+                'subtotal' => $sale->subtotal,
+                'discount' => $sale->discount,
+                'tax' => $sale->tax,
+                'grand_total' => $sale->grand_total,
+                'order_status' => $sale->order_status,
+                'reservations' => $sale->reservations,
+                'fulfilled' => true,
+            ];
+
+            return response()->json(['invoice' => $invoice], 200);
+        }
+
+        // Build simple invoice payload and return (no fulfillment requested)
         $sale->load(['items.product','customer','user','reservations']);
         $invoice = [
             'invoice_number' => $sale->invoice_number,
