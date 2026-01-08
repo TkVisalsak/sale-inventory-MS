@@ -60,7 +60,7 @@ const menuItems = [
     icon: FilePlus2,
     submenu: [
       { title: "Purchase Requests", icon: FilePlus2, href: "/inventory_user/purchase-requests" },
-      { title: "Purchase orders", icon: ListOrdered, href: "/inventory_user/purchase_orders" },
+      // { title: "Purchase orders", icon: ListOrdered, href: "/inventory_user/purchase_orders" },
       { title: "Sales orders", icon: ListOrdered, href: "/inventory_user/sale_order" },
       { title: "Returns", icon: RefreshCcw, href: "/inventory_user/return" },
       { title: "Suppliers", icon: Truck, href: "/inventory_user/suppliers" },

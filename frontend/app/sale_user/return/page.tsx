@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Plus, Search, Edit, Trash2, Loader2, Eye, RotateCcw, DollarSign, AlertTriangle } from "lucide-react"
-import { api as returnsApi } from "@/lib/inventory-api/return-api"
+import { api as returnsApi } from "@/lib/sale-api/return-api"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 
 type ReturnRecord = {
@@ -99,7 +99,7 @@ export default function ReturnsPage() {
           <h1 className="text-3xl font-bold text-balance">Returns</h1>
           <p className="text-muted-foreground">Manage product returns and refunds</p>
         </div>
-        <Link href="/inventory_user/return/add">
+        <Link href="/sale_user/return/add">
           <Button>
             <Plus className="mr-2 h-4 w-4" />
             Add Return
@@ -241,12 +241,12 @@ export default function ReturnsPage() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
-                        <Link href={`/inventory_user/return/view?id=${r.id}`}>
+                        <Link href={`/sale_user/return/view?id=${r.id}`}>
                           <Button variant="ghost" size="icon-sm">
                             <Eye className="h-4 w-4" />
                           </Button>
                         </Link>
-                        <Link href={`/inventory_user/return/edit?id=${r.id}`}>
+                        <Link href={`/sale_user/return/edit?id=${r.id}`}>
                           <Button variant="ghost" size="icon-sm">
                             <Edit className="h-4 w-4" />
                           </Button>

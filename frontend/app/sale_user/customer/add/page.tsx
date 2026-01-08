@@ -12,7 +12,7 @@ import { Switch } from "@/components/ui/switch"
 import { ArrowLeft, Save, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { api } from "@/lib/inventory-api/customer-api"
+import { api } from "@/lib/sale-api/customer-api"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 
 export default function NewCustomerPage() {
@@ -52,7 +52,7 @@ export default function NewCustomerPage() {
       }
 
       await api.customers.create(payload)
-      router.push("/inventory_user/customer")
+      router.push("/sale_user/customer")
     } catch (err: any) {
       console.error("Error creating customer:", err)
 
@@ -73,14 +73,14 @@ export default function NewCustomerPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Link href="/inventory_user/customer">
+        <Link href="/sale_user/customer">
           <Button variant="ghost" size="icon">
             <ArrowLeft className="h-4 w-4" />
           </Button>
         </Link>
         <div>
-          <h1 className="text-3xl font-bold text-balance">Add New Customer</h1>
-          <p className="text-muted-foreground">Create a new customer in the main customers table</p>
+          <h1 className="text-3xl font-bold text-balance">Add New Customer (Sale)</h1>
+          <p className="text-muted-foreground">Create a new customer for sale workflows</p>
         </div>
       </div>
 
@@ -208,7 +208,7 @@ export default function NewCustomerPage() {
                     </>
                   )}
                 </Button>
-                <Link href="/inventory_user/customer" className="block">
+                <Link href="/sale_user/customer" className="block">
                   <Button type="button" variant="outline" className="w-full bg-transparent">
                     Cancel
                   </Button>

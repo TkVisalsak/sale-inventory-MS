@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Plus, Search, Edit, Trash2, Users } from "lucide-react"
-import { api } from "@/lib/inventory-api/customer-api"
+import { api } from "@/lib/sale-api/customer-api"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 
 type Customer = {
@@ -78,9 +78,9 @@ export default function CustomersPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-balance">Customers</h1>
-          <p className="text-muted-foreground">Manage your customers from the main customers table</p>
+          <p className="text-muted-foreground"></p>
         </div>
-        <Link href="/inventory_user/customer/add">
+        <Link href="/sale_user/customer/add">
           <Button>
             <Plus className="mr-2 h-4 w-4" />
             Add Customer
@@ -171,9 +171,7 @@ export default function CustomersPage() {
                         <p className="text-xs text-muted-foreground">{customer.phone || "-"}</p>
                       </div>
                     </TableCell>
-                    <TableCell className="text-sm">
-                      {customer.customer_type || "RETAIL"}
-                    </TableCell>
+                    <TableCell className="text-sm">{customer.customer_type || "RETAIL"}</TableCell>
                     <TableCell className="text-sm">
                       {customer.credit_limit != null ? `Rs. ${Number(customer.credit_limit).toFixed(2)}` : "-"}
                     </TableCell>
@@ -186,7 +184,7 @@ export default function CustomersPage() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
-                        <Link href={`/inventory_user/customer/edit?id=${customer.id}`}>
+                        <Link href={`/sale_user/customer/edit?id=${customer.id}`}>
                           <Button variant="ghost" size="icon-sm">
                             <Edit className="h-4 w-4" />
                           </Button>

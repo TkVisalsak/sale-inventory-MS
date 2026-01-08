@@ -49,9 +49,9 @@ const menuItems = [
     title: "Customers",
     icon: Users,
     submenu: [
-      { title: "Customers", icon: Users, href: "/sale_user/customers" },
+      { title: "Customers", icon: Users, href: "/sale_user/customer" },
       { title: "Payment & Receipts", icon: Package, href: "/sale_user/payment_receipts" },
-      { title: "Returns", icon: RefreshCcw, href: "/sale_user/returns" },
+      { title: "Returns", icon: RefreshCcw, href: "/sale_user/return" },
     ],
   },
   {
