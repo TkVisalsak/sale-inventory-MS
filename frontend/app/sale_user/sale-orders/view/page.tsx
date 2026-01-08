@@ -174,6 +174,22 @@ export default function ViewSalePage() {
           }}>
             Generate Invoice
           </Button>
+          {/* Delivered button: only show when there are reservations present */}
+          {sale.reservations && sale.reservations.length > 0 && sale.order_status !== 'delivered' && (
+            <Button variant="secondary" onClick={async () => {
+              const ok = typeof window !== 'undefined' ? window.confirm('Mark this sale as delivered?') : true
+              if (!ok) return
+              const t = toast.toast({ title: 'Marking delivered...' })
+              try {
+                await saleApi.sales.update(String(sale.id), { order_status: 'delivered' })
+                toast.update(t.id, { title: 'Sale marked delivered' })
+                setSale({ ...(sale as SaleRow), order_status: 'delivered' })
+                router.refresh()
+              } catch (err:any) {
+                toast.update(t.id, { title: 'Deliver failed', description: err?.message || 'Failed to mark delivered' })
+              }
+            }}>Delivered</Button>
+          )}
         </div>
       </div>
 

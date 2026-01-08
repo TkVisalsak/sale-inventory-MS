@@ -93,11 +93,21 @@ class SalesController extends Controller
         $sale = Sale::with(['items','reservations'])->find($id);
         if (!$sale) return response()->json(['message' => 'Sale not found'], 404);
 
+
         $data = $request->only(['order_status','payment_status']);
         $oldStatus = $sale->order_status;
 
-        if (isset($data['order_status'])) {
-            $sale->order_status = $data['order_status'];
+        // Prevent marking as delivered unless there are actual reserved stock reservations
+        if (isset($data['order_status']) && $data['order_status'] === 'delivered') {
+            $hasReserved = $sale->reservations()->whereIn('status', ['reserved', 'confirmed', 'allocated'])->exists();
+            if (!$hasReserved) {
+                return response()->json(['message' => 'Cannot mark delivered: no reserved stock'], 400);
+            }
+            $sale->order_status = 'delivered';
+        } else {
+            if (isset($data['order_status'])) {
+                $sale->order_status = $data['order_status'];
+            }
         }
         if (isset($data['payment_status'])) {
             $sale->payment_status = $data['payment_status'];
@@ -132,6 +142,40 @@ class SalesController extends Controller
         }
 
         return $sale->fresh();
+    }
+
+    // List sales that are unpaid or have outstanding balance
+    public function unpaidList()
+    {
+        $sales = Sale::with(['items.product','customer','user','payments'])->get()->map(function($sale){
+            $paid = $sale->payments->sum('amount');
+            $outstanding = max(0, $sale->grand_total - $paid);
+            $s = $sale->toArray();
+            $s['paid_amount'] = (float)$paid;
+            $s['outstanding'] = (float)$outstanding;
+            return $s;
+        })->filter(function($s){
+            return $s['outstanding'] > 0;
+        })->values();
+
+        return $sales;
+    }
+
+    // List sales that are fully paid
+    public function paidList()
+    {
+        $sales = Sale::with(['items.product','customer','user','payments'])->get()->map(function($sale){
+            $paid = $sale->payments->sum('amount');
+            $outstanding = max(0, $sale->grand_total - $paid);
+            $s = $sale->toArray();
+            $s['paid_amount'] = (float)$paid;
+            $s['outstanding'] = (float)$outstanding;
+            return $s;
+        })->filter(function($s){
+            return $s['outstanding'] <= 0;
+        })->values();
+
+        return $sales;
     }
 
     // Generate invoice for a sale: if sale is draft, transition to pending_inventory

@@ -72,10 +72,20 @@ Route::get('purchase-orders/{id}', [PurchaseOrderController::class, 'show']);
 
 // Sales API Routes (Sale orders / invoices)
 Route::get('sales', [SalesController::class, 'index']);
-Route::get('sales/{id}', [SalesController::class, 'show']);
+Route::get('sales/{id}', [SalesController::class, 'show'])->whereNumber('id');
 Route::post('sales', [SalesController::class, 'store']);
-Route::put('sales/{id}', [SalesController::class, 'update']);
-Route::post('sales/{id}/invoice', [SalesController::class, 'generateInvoice']);
+Route::put('sales/{id}', [SalesController::class, 'update'])->whereNumber('id');
+Route::post('sales/{id}/invoice', [SalesController::class, 'generateInvoice'])->whereNumber('id');
+// Sales payment / lists
+Route::get('sales/unpaid', [SalesController::class, 'unpaidList']);
+Route::get('sales/paid', [SalesController::class, 'paidList']);
+
+// Payments
+use App\Http\Controllers\PaymentController;
+Route::get('payments', [PaymentController::class, 'index']);
+Route::post('sales/{id}/payments', [PaymentController::class, 'store']);
+Route::get('customers/{id}/payments', [PaymentController::class, 'byCustomer']);
+Route::get('customers/{id}/balance', [PaymentController::class, 'customerBalance']);
 
 // Stock reservation endpoints for inventory_user to confirm
 Route::get('stock-reservations', [StockReservationController::class, 'index']);
