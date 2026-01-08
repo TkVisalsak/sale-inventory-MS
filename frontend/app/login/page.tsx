@@ -47,8 +47,16 @@ export default function LoginPage() {
           localStorage.setItem("user_role", response.data.user.role)
         }
 
-        // Redirect based on role
-        router.push(response.data.redirect)
+        // Redirect based on selected role (override backend redirect for Sale role)
+        let redirectPath = response.data.redirect
+        if (formData.role === "admin") {
+          // "admin" role in backend corresponds to "Sale" in frontend, redirect to sale_user
+          redirectPath = "/sale_user"
+        } else if (formData.role === "inventory") {
+          redirectPath = "/inventory_user"
+        }
+
+        router.push(redirectPath)
       }
     } catch (err: any) {
       console.error("Login error:", err)
@@ -134,10 +142,10 @@ export default function LoginPage() {
                     required
                   >
                     <SelectTrigger className="pl-10">
-                      <SelectValue placeholder="Select your role" />
+                      <SelectValue placeholder="Select role" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="admin">Admin</SelectItem>
+                      <SelectItem value="admin">Sale</SelectItem>
                       <SelectItem value="inventory">Inventory</SelectItem>
                     </SelectContent>
                   </Select>
