@@ -14,6 +14,7 @@ use App\Http\Controllers\SalesController;
 use App\Http\Controllers\StockReservationController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AnalyticsController;
+use App\Http\Controllers\ReportsController;
 use Illuminate\Support\Facades\Route;
 
 // Category API Routes
@@ -89,6 +90,9 @@ Route::get('analytics/products', [AnalyticsController::class, 'products']);
 // Stock Adjustments (Stock Movements) API Routes
 Route::get('stock-adjustments', [StockMovementsController::class, 'adjustmentsIndex']);
 Route::post('stock-adjustments', [StockMovementsController::class, 'storeAdjustment']);
+
+// Reports
+Route::get('reports/stock', [ReportsController::class, 'stockReport']);
 
 // Price List API Routes
 Route::get('price-lists', [PriceListController::class, 'index']);

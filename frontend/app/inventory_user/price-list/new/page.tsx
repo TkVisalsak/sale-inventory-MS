@@ -13,6 +13,7 @@ import { Switch } from "@/components/ui/switch"
 import { ArrowLeft, Save, Loader2 } from "lucide-react"
 import { api as priceListApi } from "@/lib/inventory-api/price-list-api"
 import { api as productApi } from "@/lib/inventory-api/product-api"
+import { api as batchApi } from "@/lib/inventory-api/batch-api"
 import { api as categoryApi } from "@/lib/inventory-api/category-api"
 import { api as supplierApi } from "@/lib/inventory-api/supplier-api"
 
@@ -56,15 +57,26 @@ const [formData, setFormData] = useState({
         setLoadingSuppliers(true)
         setLoadingProducts(true)
 
-        const [categoriesData, suppliersData, productsData] = await Promise.all([
+        // Also fetch existing price lists so we only show products without a price
+        const [categoriesData, suppliersData, productsData, priceListsData] = await Promise.all([
           categoryApi.categories.getAll(),
           supplierApi.suppliers.getAll(),
           productApi.products.getAll(),
+          priceListApi.priceLists.getAll(),
         ])
 
         setCategories(Array.isArray(categoriesData) ? categoriesData : [])
         setSuppliers(Array.isArray(suppliersData) ? suppliersData : [])
-        setProducts(Array.isArray(productsData) ? productsData : [])
+
+        const allProducts = Array.isArray(productsData) ? productsData : []
+        const priceLists = Array.isArray(priceListsData) ? priceListsData : []
+
+        // Filter out products that already have a price list entry
+        const productsWithoutPrice = allProducts.filter(
+          (p: any) => !priceLists.some((pl: any) => Number(pl.product_id) === Number(p.id))
+        )
+
+        setProducts(productsWithoutPrice)
       } catch (err) {
         console.error("Error fetching data:", err)
         setError("Failed to load data")
@@ -101,6 +113,48 @@ if (formData.supplier_id !== "all") {
       if (!exists) setFormData((prev) => ({ ...prev, product_id: "" }))
     }
   }, [formData.category_id, formData.supplier_id, products])
+
+  // When a product is selected, auto-fill batch_price from the latest batch for that product
+  useEffect(() => {
+    const fillBatchPrice = async () => {
+      if (!formData.product_id) return
+
+      try {
+        const productId = Number(formData.product_id)
+        const batchesData = await batchApi.batches.getAll()
+        if (!Array.isArray(batchesData)) return
+
+        // Flatten batch items and include purchase_date for sorting
+        const items: Array<any> = []
+        batchesData.forEach((batch: any) => {
+          if (!batch.items || !Array.isArray(batch.items)) return
+          batch.items.forEach((bi: any) => {
+            if (Number(bi.product_id) === productId) {
+              items.push({
+                unit_cost: bi.unit_cost,
+                purchase_date: batch.purchase_date,
+                batch_id: batch.batch_id,
+              })
+            }
+          })
+        })
+
+        if (items.length === 0) return
+
+        // Find latest by purchase_date (descending)
+        items.sort((a, b) => new Date(b.purchase_date).getTime() - new Date(a.purchase_date).getTime())
+        const latest = items[0]
+
+        if (latest && latest.unit_cost !== undefined && latest.unit_cost !== null) {
+          setFormData((prev) => ({ ...prev, batch_price: String(latest.unit_cost) }))
+        }
+      } catch (e) {
+        console.error("Failed to auto-fill batch price:", e)
+      }
+    }
+
+    fillBatchPrice()
+  }, [formData.product_id])
 
   const handleChange = (field: string, value: string | boolean) => {
     setFormData((prev) => ({ ...prev, [field]: value }))

@@ -84,7 +84,7 @@ export default function NewReturnPage() {
       }
 
       await returnsApi.returns.create(payload)
-      router.push("/inventory_user/return")
+      router.push("/sale_user/return")
     } catch (err: any) {
       console.error("Error creating return:", err)
 
@@ -106,7 +106,7 @@ export default function NewReturnPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Link href="/inventory_user/return">
+        <Link href="/sale_user/return">
           <Button variant="ghost" size="icon">
             <ArrowLeft className="h-4 w-4" />
           </Button>
@@ -245,7 +245,7 @@ export default function NewReturnPage() {
                     </>
                   )}
                 </Button>
-                <Link href="/inventory_user/return" className="block">
+                <Link href="/sale_user/return" className="block">
                   <Button type="button" variant="outline" className="w-full bg-transparent">
                     Cancel
                   </Button>

@@ -109,7 +109,7 @@ export default function EditReturnPage() {
       }
 
       await returnsApi.returns.update(returnId!, payload)
-      router.push("/inventory_user/return")
+      router.push("/sale_user/return")
     } catch (err: any) {
       console.error("Error updating return:", err)
       
@@ -132,7 +132,7 @@ export default function EditReturnPage() {
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-4">
-          <Link href="/inventory_user/return">
+          <Link href="/sale_user/return">
             <Button variant="ghost" size="icon">
               <ArrowLeft className="h-4 w-4" />
             </Button>
@@ -151,7 +151,7 @@ export default function EditReturnPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Link href="/inventory_user/return">
+        <Link href="/sale_user/return">
           <Button variant="ghost" size="icon">
             <ArrowLeft className="h-4 w-4" />
           </Button>
@@ -289,7 +289,7 @@ export default function EditReturnPage() {
                     </>
                   )}
                 </Button>
-                <Link href="/inventory_user/return" className="block">
+                <Link href="/sale_user/return" className="block">
                   <Button type="button" variant="outline" className="w-full bg-transparent" disabled={loading}>
                     Cancel
                   </Button>

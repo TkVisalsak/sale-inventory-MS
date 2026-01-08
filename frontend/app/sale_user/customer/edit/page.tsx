@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { ArrowLeft, Save, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
-import { api } from "@/lib/inventory-api/customer-api"
+import { api } from "@/lib/sale-api/customer-api"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 
 export default function EditCustomerPage() {
@@ -82,7 +82,7 @@ export default function EditCustomerPage() {
       }
 
       await api.customers.update(customerId!, payload)
-      router.push("/inventory_user/customer")
+      router.push("/sale_user/customer")
     } catch (err: any) {
       console.error("Error updating customer:", err)
 
@@ -104,7 +104,7 @@ export default function EditCustomerPage() {
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-4">
-          <Link href="/inventory_user/customer">
+          <Link href="/sale_user/customer">
             <Button variant="ghost" size="icon">
               <ArrowLeft className="h-4 w-4" />
             </Button>
@@ -123,7 +123,7 @@ export default function EditCustomerPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Link href="/inventory_user/customer">
+        <Link href="/sale_user/customer">
           <Button variant="ghost" size="icon">
             <ArrowLeft className="h-4 w-4" />
           </Button>
@@ -243,7 +243,7 @@ export default function EditCustomerPage() {
                     </>
                   )}
                 </Button>
-                <Link href="/inventory_user/customer" className="block">
+                <Link href="/sale_user/customer" className="block">
                   <Button type="button" variant="outline" className="w-full bg-transparent" disabled={loading}>
                     Cancel
                   </Button>
